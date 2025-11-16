@@ -364,8 +364,8 @@ cd backend
 python RAG.py
 
 # Should see:
-# 📚 Total Chunks: 8
-# ✅ FAISS index created with 8 vectors
+# Total Chunks
+# ✅ FAISS index created 
 ```
 
 ---
@@ -434,9 +434,7 @@ Try these to verify everything works:
 
 ## 📚 Documentation
 
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed system design
-- **[RAG_INTEGRATION.md](docs/RAG_INTEGRATION.md)** - How RAG works
-- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Quick reference
+- **[RAG_INTEGRATION.md](RAG_INTEGRATION.md)** - How RAG works
 
 ---
 
