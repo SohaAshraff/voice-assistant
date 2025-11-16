@@ -175,6 +175,40 @@ Similar meanings = Similar vectors
 │         Response played in browser                          │
 └─────────────────────────────────────────────────────────────┘
 ```
+## Integration with Gemini
+
+### Prompt Interception Method
+
+Unlike function calling, this implementation uses **prompt enhancement**:
+
+```python
+# Store original method
+original_generate = session.generate_reply
+
+# Create wrapper function
+async def rag_enhanced_generate(*args, **kwargs):
+    # 1. Get user query
+    instructions = kwargs.get("instructions", "")
+    
+    # 2. Retrieve context from FAISS
+    rag_results = search_faiss(instructions, k=5)
+    
+    # 3. Build enhanced prompt
+    enhanced_instructions = f"""Context: {context}
+    
+    Question: {instructions}
+    
+    Answer using the context above."""
+    
+    # 4. Replace instructions
+    kwargs["instructions"] = enhanced_instructions
+    
+    # 5. Call original method with enhanced prompt
+    return await original_generate(*args, **kwargs)
+
+# Replace method
+session.generate_reply = rag_enhanced_generate
+```
 
 ### Why This Approach?
 
@@ -182,7 +216,13 @@ Similar meanings = Similar vectors
 - ✅ Works with every user message
 - ✅ Automatic context injection
 - ✅ Simpler implementation
-
+**How It Works:**
+1. User speaks → Gemini transcribes
+2. Transcription goes to `generate_reply()`
+3. Our wrapper intercepts it
+4. RAG searches and adds context
+5. Enhanced prompt sent to Gemini
+6. Gemini responds with context
 ---
 
 ## Example Walkthrough
