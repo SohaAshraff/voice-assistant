@@ -286,7 +286,7 @@ The system uses **semantic search** to find relevant information:
 Your Question → Converted to Vector → Search Database → Find Similar Info → Add to AI Prompt
 ```
 
-**Learn more:** [docs/RAG_INTEGRATION.md](docs/RAG_INTEGRATION.md)
+**Learn more:** [docs/RAG_INTEGRATION.md](RAG_INTEGRATION.md)
 
 ---
 
