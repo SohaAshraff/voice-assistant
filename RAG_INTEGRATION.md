@@ -216,6 +216,7 @@ session.generate_reply = rag_enhanced_generate
 - ✅ Works with every user message
 - ✅ Automatic context injection
 - ✅ Simpler implementation
+  
 **How It Works:**
 1. User speaks → Gemini transcribes
 2. Transcription goes to `generate_reply()`
