@@ -10,6 +10,7 @@ A real-time voice assistant powered by Google Gemini Live API, LiveKit, and FAIS
 - [Prerequisites](#prerequisites)
 - [Setup Instructions](#setup-instructions)
 - [Running Locally](#running-locally)
+- [Demo video](#example_interactions)
 - [How It Works](#how-it-works)
 - [RAG Integration](#rag-integration)
 - [Example Usage](#example-usage)
@@ -254,6 +255,21 @@ Click the **"Disconnect"** button to end the session.
 
 ---
 
+## 🎬 Demo Video
+
+I’ve included a short demo video showing the voice assistant in action. In the video, you can see:
+
+- Connecting to the assistant through the web interface
+- Speaking naturally and receiving voice responses
+- Real-time transcript display
+- RAG-powered contextual answers from the store knowledge base
+
+**Watch it here:** [Demo.mp4](./Demo.mp4)
+
+> The video demonstrates a typical interaction with the agent and highlights how the system processes your voice input to provide accurate, context-aware responses.
+
+---
+
 ## 🔧 How It Works
 
 ### What Happens When You Ask a Question
@@ -286,7 +302,7 @@ The system uses **semantic search** to find relevant information:
 Your Question → Converted to Vector → Search Database → Find Similar Info → Add to AI Prompt
 ```
 
-**Learn more:** [docs/RAG_INTEGRATION.md](RAG_INTEGRATION.md)
+**Learn more:** [RAG_INTEGRATION.md](RAG_INTEGRATION.md)
 
 ---
 
@@ -312,6 +328,7 @@ voice-assistant/
 ├── RAG_INTEGRATION.md         # RAG implementation guide
 │   
 ├── README.md                  # This file
+├── Demo.mp4                   #Demo video showing example interactions.
 └── .gitignore                 # Files to ignore in git
 ```
 
