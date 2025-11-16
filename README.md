@@ -105,7 +105,7 @@ The assistant uses **Retrieval-Augmented Generation (RAG)** to provide accurate,
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/SohaAshraff/voice-assistant
+git clone https://github.com/SohaAshraff/voice-assistant.git
 cd voice-assistant
 ```
 
