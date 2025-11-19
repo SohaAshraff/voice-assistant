@@ -5,7 +5,7 @@ This document explains the RAG system used in this project, including:
 * FAISS vector search
 * SentenceTransformers embeddings
 * LiveKit + Gemini Realtime
-* **Function calling via `search_store_info`** ✔ (NEW SECTION INCLUDED)
+* Function calling via `search_store_info`
 
 ---
 
