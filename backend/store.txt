@@ -1,27 +1,45 @@
-opening hours : Our store is open Monday to Friday from 9:00 AM to 6:00 PM. On Saturdays, we're open from 10:00 AM to 5:00 PM. 
-We are closed on Sundays and major holidays.
+Store Name: FreshMart Store
 
-location: We are located at 123 Main Street, Downtown, NY 10001.
-The store is right next to the City Hall subway station (blue line). There's a coffee shop on the corner - we're in the same building.
+Location:
+- Address: Downtown Street 12, Cairo, Egypt
+- Landmark: Next to City Center Mall
 
-services: We offer the following services: Personal shopping assistance, Professional gift wrapping , Online ordering with in-store pickup (ready in 2 hours)
-Same-day delivery within 10 miles (orders over $50) , Free nationwide shipping on orders over $75
+Store Hours:
+- Monday to Thursday: 9:00 AM – 10:00 PM
+- Friday: 1:00 PM – 11:00 PM
+- Saturday & Sunday: 9:00 AM – 11:00 PM
 
-return policy: We accept returns within 30 days of purchase with original receipt. Items must be unused and in original packaging.
-We offer full refunds or exchanges.
-Sale items can be exchanged but not refunded.
+Parking:
+- Free customer parking available.
+- 20 parking spots on-site.
+- Accessible parking spaces available near entrance.
 
-CONTACT INFORMATION:
-Phone: (555) 123-4567
-Email: info@ourstore.com
-Our customer service team responds to emails within 24 hours.
+Services:
+- Home delivery service (10 AM – 10 PM).
+- In-store pickup for online orders.
+- Customer support desk.
+- Gift wrapping service.
+- Loyalty program with reward points.
 
-PAYMENT METHODS:
-We accept all major credit cards: Visa, Mastercard, American Express, and Discover.
-We also accept debit cards, cash, Apple Pay, Google Pay, and store gift cards.
+Payment Methods:
+- Cash
+- Visa
+- Mastercard
+- Meeza
+- Mobile wallets (Vodafone Cash, Etisalat Cash)
 
-ACCESSIBILITY:
-Our store is fully wheelchair accessible.
-We have ramps at all entrances and wide aisles throughout the store.
-Accessible fitting rooms are available.
-Service animals are always welcome.
+Return & Exchange Policy:
+- Returns accepted within 48 hours with receipt.
+- Items must be unused and in original packaging.
+- No returns on fresh produce unless defective.
+
+Accessibility:
+- Wheelchair-accessible entrance.
+- Wide aisles suitable for mobility devices.
+- Staff available to assist customers with disabilities.
+
+Contact Information:
+- Phone: 0100-555-1234
+- WhatsApp: 0100-555-1234
+- Email: support@freshmart.com
+- Facebook: facebook.com/freshmartstore

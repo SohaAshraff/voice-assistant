@@ -277,29 +277,35 @@ I’ve included a short demo video showing the voice assistant in action. In the
 ```
 1. You speak: "What's the store location?"
    ↓
-2. LiveKit captures your voice and sends it to the agent
+2. LiveKit streams your voice to the agent in real time
    ↓
-3. Gemini AI transcribes your speech to text
+3. Gemini converts the audio into text
    ↓
-4. RAG System searches the knowledge base
+4. Gemini decides that external knowledge is needed
    ↓
-5. Finds: "location: We are located at 123 Main Street..."
+5. Gemini automatically triggers the function tool:
+      search_knowledge_base("store location")
    ↓
-6. Agent adds this context to Gemini's prompt
+6. The RAG system (FAISS) searches the knowledge base
    ↓
-7. Gemini generates a natural response using the context
+7. The function returns relevant context back to Gemini:
+      "Our store is located Downtown Street 12, Cairo..."
    ↓
-8. Response is converted to speech
+8. Gemini generates a final answer using the retrieved context
    ↓
-9. You hear: "Our store is located at 123 Main Street, Downtown, NY 10001, right next to..."
+9. The response is converted to speech by the agent
+   ↓
+10. You hear:
+     "Our store is located at Downtown Street 12, Cairo, Egypt"
+
 ```
 
 ### RAG (Retrieval-Augmented Generation)
 
-The system uses **semantic search** to find relevant information:
+The system uses semantic search to provide accurate, context-aware responses. The workflow integrates **function tools** so Gemini can call the RAG system automatically when needed:
 
 ```
-Your Question → Converted to Vector → Search Database → Find Similar Info → Add to AI Prompt
+Your Question → Gemini decides external info is needed → Function Tool Call → search_knowledge_base("User Question") → RAG System (FAISS + Sentence Transformers) → Gemini receives context from tool → Context + original question → AI Prompt → Gemini generates final, natural answer → Agent converts text to speech → User hears accurate, context-aware response
 ```
 
 **Learn more:** [RAG_INTEGRATION.md](RAG_INTEGRATION.md)
@@ -432,8 +438,6 @@ opening hours: Monday-Friday 9AM-6PM, Saturday 10AM-5PM
 python agent.py dev
 ```
 
-The RAG system automatically rebuilds the index with new information!
-
 ---
 
 ## 🧪 Testing
@@ -442,10 +446,10 @@ The RAG system automatically rebuilds the index with new information!
 
 Try these to verify everything works:
 
-| Question | Should Retrieve |
+| Question | Should find |
 |----------|----------------|
 | "What time do you close?" | Store hours |
-| "Where are you located?" | Location/address |
+| "Where are you located?" | Location |
 
 ---
 

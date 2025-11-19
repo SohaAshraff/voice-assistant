@@ -27,7 +27,7 @@ d = embeddings.shape[1]
 index = faiss.IndexFlatL2(d)
 index.add(np.array(embeddings))
 
-print(f"\n✅ FAISS index created with {index.ntotal} vectors")
+print(f"\n FAISS index created with {index.ntotal} vectors")
 
 
 def search_faiss(query, k=5):  

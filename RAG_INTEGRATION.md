@@ -1,393 +1,341 @@
-# 🧠 RAG Integration Documentation
+# 🧠 RAG (Retrieval-Augmented Generation) – Store Assistant
 
-## Retrieval-Augmented Generation with Gemini Live API
+This document explains the RAG system used in this project, including:
 
-This document details how the RAG (Retrieval-Augmented Generation) system integrates with Google's Gemini Live API to provide accurate, context-aware responses.
+* FAISS vector search
+* SentenceTransformers embeddings
+* LiveKit + Gemini Realtime
+* **Function calling via `search_store_info`** ✔ (NEW SECTION INCLUDED)
 
 ---
 
-## Table of Contents
+# 📌 Table of Contents
 
 1. [What is RAG?](#what-is-rag)
-2. [System Components](#system-components)
-3. [How Retrieval Works](#how-retrieval-works)
-4. [Integration with Gemini](#integration-with-gemini)
-5. [Example Walkthrough](#example-walkthrough)
-6. [Performance Analysis](#performance-analysis)
-7. [Troubleshooting](#troubleshooting)
+2. [How the System Works](#how-the-system-works)
+3. [Knowledge Base](#knowledge-base)
+4. [Chunking & Embeddings](#chunking--embeddings)
+5. [FAISS Vector Search](#faiss-vector-search)
+6. [Function Tool – `search_store_info`](#function-tool--search_store_info)
+7. [Function Calling Workflow](#function-calling-workflow)
+8. [Code Flow Diagram](#code-flow-diagram)
+9. [Example Interaction](#example-interaction)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
-## What is RAG?
+# ❓ What is RAG?
 
-**Retrieval-Augmented Generation** is a technique that enhances AI responses by retrieving relevant information from a knowledge base before generating an answer.
+RAG improves AI responses by retrieving relevant text from a knowledge base before generating an answer.
 
-### Why RAG?
+### Without RAG
 
-**Without RAG:**
 ```
-User: "What's the store location?"
-AI: "I don't have specific information about location."
-```
-
-**With RAG:**
-```
-User: "What's the store location?"
-System: [Searches knowledge base → Finds location info]
-AI: "Our store is located at 123 Main Street, Downtown, NY..."
+User: When do you close?
+AI: I’m not sure.
 ```
 
-### Benefits
+### With RAG
 
-✅ **Accuracy:** Uses verified store data  
-✅ **Up-to-date:** Easy to update knowledge base  
-✅ **Traceable:** Can verify sources  
-✅ **Specific:** Provides exact details (hours, addresses, etc.)  
+```
+User: When do you close?
+AI → Searches data → Finds store hours
+AI: We close at 10 PM on weekdays and 11 PM weekends.
+```
 
 ---
 
-## System Components
+# ⚙️ How the System Works
 
-### 1. Knowledge Base (`store.txt`)
+If the user asks any store-related question (hours, location, returns, parking, contact, etc.), the AI:
 
-**Format:** Plain text with sections
+1. Calls the `search_store_info` function tool
+2. The tool performs a FAISS vector similarity search
+3. The tool returns relevant store information
+4. The AI must respond **using only that information**
 
-**Structure:**
-- Each section starts with a topic keyword
-- Clear, concise information
-- Natural language format
+If no result exists:
 
----
-
-### 2. Text Splitter (RAG.py)
-
-**Purpose:** Break knowledge base into searchable chunks
-
-
-| Parameter | Value | Reason |
-|-----------|-------|--------|
-| `chunk_size` | 300 | Long enough for complete context |
-| `chunk_overlap` | 50 | Prevents information loss at boundaries |
-| `separators` | Natural breaks | Keeps related info together |
+> The AI politely tells the user it doesn’t have that info.
 
 ---
 
-### 3. Embedding Model (RAG.py)
+# 📚 Knowledge Base
 
-**Model:** `all-MiniLM-L6-v2` by Sentence Transformers
-
-**Specifications:**
-- Input: Text string (any length)
-- Output: 384-dimensional vector
-- Language: English (optimized)
-
-**What Are These Vectors?**
-
-Embeddings capture semantic meaning:
-
-Similar meanings = Similar vectors
-
----
-
-### 4. Vector Database - FAISS (RAG.py)
-
-**FAISS:** Facebook AI Similarity Search
-
-**Purpose:** Fast nearest neighbor search in high-dimensional space
-
-
-## How Retrieval Works
-
-### Complete Flow from User Question to Response
+Stored in:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     User Speaks                             │
-│              "Where is the store location?"                 │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              LiveKit Audio Stream                            │
-│         Audio transmitted to Voice Agent                     │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Gemini Live API                                │
-│         Transcribes: "Where is the store location?"         │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Agent Session (agent.py)                       │
-│         Intercepts with rag_enhanced_generate()             │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              RAG System (RAG.py)                            │
-│                                                             │
-│  1. Encode query to vector:                                 │
-│                                                             │
-│  2. Search FAISS index:                                     │
-│     Find 5 nearest chunks                                   │
-│                                                             │
-│  3. Results with scores                                     │                          
-│                                                             │
-│  4. Return top 5 chunks                                     │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Enhanced Prompt Builder (agent.py)             │
-│                                                             │
-│  Creates enriched prompt:                                   │
-│                                                             │
-│  "You are answering about our store. Here is EXACT info:    │
-│                            .........                        │                
-│                                                             │
-│   Use the information above to answer..."                   │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Gemini Response Generation                     │
-│                                                             │
-│  Reads context, generates natural response                  │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Text-to-Speech (Gemini)                        │
-│         Converts response to audio (Puck voice)             │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              LiveKit Audio Stream                           │
-│         Audio transmitted back to user                      │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              User Hears Response                            │
-│         Response played in browser                          │
-└─────────────────────────────────────────────────────────────┘
+store.txt
 ```
-## Integration with Gemini
 
-### Prompt Interception Method
+Plain text file containing information about:
 
-Unlike function calling, this implementation uses **prompt enhancement**:
+* Store hours
+* Location
+* Parking
+* Services
+* Payment
+* Returns
+* Accessibility
+* Contact details
+
+To update the knowledge base, **edit this file only**.
+
+---
+
+# ✂️ Chunking & Embeddings
+
+The file is split into overlapping chunks:
 
 ```python
-# Store original method
-original_generate = session.generate_reply
-
-# Create wrapper function
-async def rag_enhanced_generate(*args, **kwargs):
-    # 1. Get user query
-    instructions = kwargs.get("instructions", "")
-    
-    # 2. Retrieve context from FAISS
-    rag_results = search_faiss(instructions, k=5)
-    
-    # 3. Build enhanced prompt
-    enhanced_instructions = f"""Context: {context}
-    
-    Question: {instructions}
-    
-    Answer using the context above."""
-    
-    # 4. Replace instructions
-    kwargs["instructions"] = enhanced_instructions
-    
-    # 5. Call original method with enhanced prompt
-    return await original_generate(*args, **kwargs)
-
-# Replace method
-session.generate_reply = rag_enhanced_generate
+chunk_size = 300
+chunk_overlap = 50
 ```
 
-### Why This Approach?
+This allows:
 
-**Advantages:**
-- ✅ Works with every user message
-- ✅ Automatic context injection
-- ✅ Simpler implementation
-  
-**How It Works:**
-1. User speaks → Gemini transcribes
-2. Transcription goes to `generate_reply()`
-3. Our wrapper intercepts it
-4. RAG searches and adds context
-5. Enhanced prompt sent to Gemini
-6. Gemini responds with context
----
+* Cleaner contextual retrieval
+* Less information loss at boundaries
 
-## Example Walkthrough
-
-### Example 1: Store Hours
-
-**User:** "What time do you close?"
-
-**Terminal Output:**
-```
- User Query: What time do you close?
-
- Searching for: 'What time do you close?'
-  Result 1 (score: 0.61): opening hours : Our store is open Monday to Friday from 9:00 AM to 6:00 PM. On Saturdays, we're open...
-  Result 2 (score: 1.28): location: We are located at 123 Main Street, Downtown, NY 10001. The store is right next to the City...
-  Result 3 (score: 1.35): parking: free parking is available in our lot behind the building. The parking lot entrance is on Oa...
-
-✅ RAG: Retrieved 5 relevant chunks
-```
-
-**Score Analysis:**
-- 0.61: **Perfect match** - Opening hours chunk
-- 1.28: Good - Location (nearby context)
-- 1.35: Acceptable - Parking (related)
-
-**Agent Response:**
-> "We close at 6:00 PM Monday through Friday, and at 5:00 PM on Saturdays. We're closed on Sundays and major holidays."
-
----
-
-### Example 2: Location Question
-
-**User:** "Where is the store located?"
-
-**Terminal Output:**
-```
-🔍 User Query: Where is the store located?
-
-🔎 Searching for: 'Where is the store located?'
-  Result 1 (score: 0.81): location: We are located at 123 Main Street, Downtown, NY 10001. The store is right next to the City...
-  Result 2 (score: 1.18): CONTACT INFORMATION: Phone: (555) 123-4567 Email: info@ourstore.com...
-  Result 3 (score: 1.35): opening hours : Our store is open Monday to Friday...
-
-✅ RAG: Retrieved 5 relevant chunks
-```
-
-**Agent Response:**
-> "We're located at 123 Main Street, Downtown, NY 10001. We're right next to the City Hall subway station on the blue line. There's a coffee shop on the corner - we're in the same building."
-
----
-
-
-
-## Code Flow Diagram
+Embeddings use:
 
 ```python
-# User speaks in browser
-    ↓
-# LiveKit transmits audio
-    ↓
-# Gemini transcribes speech
-    ↓
-# agent.py receives transcription
+SentenceTransformer("all-MiniLM-L6-v2")
+```
 
-async def rag_enhanced_generate(*args, **kwargs):
-    instructions = kwargs.get("instructions", "")  # ← User query
-    
-    if instructions and len(instructions) > 20:
-        # STEP 1: Call RAG
-        rag_results = search_faiss(instructions, k=5)
-        
-        # STEP 2: Filter results
-        valid_results = [r.strip() for r in rag_results 
-                        if len(r.strip()) > 0]
-        
-        if valid_results:
-            # STEP 3: Build context
-            context_text = "\n\n---\n\n".join(valid_results)
-            
-            # STEP 4: Create enhanced prompt
-            enhanced_instructions = f"""
-            Here is store info: {context_text}
-            Customer asked: {instructions}
-            Use the info above to answer.
-            """
-            
-            # STEP 5: Replace instructions
-            kwargs["instructions"] = enhanced_instructions
-    
-    # STEP 6: Call Gemini with enhanced prompt
-    return await original_generate(*args, **kwargs)
+Each chunk becomes a 384-dimensional semantic vector.
 
-# Gemini generates response with context
+---
+
+# ⚡ FAISS Vector Search
+
+FAISS is used for fast nearest-neighbor similarity search:
+
+```python
+index = faiss.IndexFlatL2(d)
+index.add(embeddings)
+```
+
+Searching:
+
+```python
+search_faiss(query, k=5)
+```
+
+Returns the top-K most relevant text chunks based on meaning, not keywords.
+
+---
+
+# 🧰 Function Tool – `search_store_info`
+
+This system uses a **structured function tool**, defined as:
+
+```python
+@function_tool(
+    name="search_store_info",
+    description=(
+        "Search the store knowledge base for information about hours, "
+        "location, parking, services, payment methods, returns policy, "
+        "accessibility, or contact details. "
+        "Call this tool whenever the user asks about the store."
+    )
+)
+```
+
+### What this means
+
+📌 When Gemini receives a question such as:
+
+```
+"What time do you close?"
+```
+
+It detects that this is a **store-related question**, and automatically calls:
+
+```python
+search_store_info("What time do you close?")
+```
+
+### What the function does
+
+Inside the function:
+
+1. Converts user question to an embedding
+2. Searches FAISS vector index
+3. Retrieves matching text chunks
+4. Formats them as:
+
+```
+[STORE INFORMATION]
+...
+[END OF STORE INFORMATION]
+```
+
+5. Returns the result to the LLM
+
+The LLM **must base its answer only on this returned text.**
+
+---
+
+# 🧠 How the Assistant Enforces Function Use
+
+The agent instructions clearly state:
+
+```
+When answering store-related questions (
+hours, location, parking, services, payment, 
+returns, accessibility, contact),
+you MUST call the `search_store_info` tool.
+```
+
+Also:
+
+* If results exist → answer using them
+* If no results → politely say you don’t have that info
+* The AI should answer naturally, without mentioning “tools” or “FAISS”
+
+So the LLM is guided to:
+
+* Decide whether the question is store-related
+* Trigger the correct function
+* Use factual data only
+
+---
+
+# 🔁 Function Calling Workflow
+
+Full pipeline:
+
+```
+User speaks
     ↓
-# Text-to-speech conversion
+LiveKit captures audio
     ↓
-# LiveKit transmits audio back
+Gemini transcribes text
     ↓
-# User hears response
+LLM checks the task
+    ↓
+Is the question about the store?
+    ↓       ↓
+  Yes        No
+    ↓        ↓
+Call search_store_info()     Answer directly
+    ↓
+FAISS returns relevant chunks
+    ↓
+LLM reads chunks
+    ↓
+Generates a natural human answer
+    ↓
+Gemini converts text to speech
+    ↓
+User hears the final answer
 ```
 
 ---
 
-## Troubleshooting
+# 💬 Example Interaction
 
-### Issue 1: Poor Retrieval Results
+### User
 
-**Symptoms:**
-- All scores above 1.5
-- Agent says "I don't know" despite having info
+> Where is the store located?
 
-**Solutions:**
+### Console Output
 
-```python
-# 1. Test RAG directly
+```
+RAG Tool Called with query: Where is the store located?
+
+Searching for: 'Where is the store located?'
+Result 1 (score 0.42): Address: Downtown Street 12, Cairo, Egypt...
+Result 2 (score 1.11): Contact information...
+```
+
+### Assistant Response
+
+> The store is located at Downtown Street 12 in Cairo, next to City Center Mall.
+
+---
+
+# 🧪 Testing the RAG System
+
+Run:
+
+```bash
 python RAG.py
-
-# 2. Check chunks were created
-
-# 3. Increase k value
-search_faiss(query, k=5)  # Try k=7 or k=10
-
-# 4. Adjust chunk size in RAG.py
-chunk_size=400  # From 300
 ```
+
+You should see:
+
+* Number of chunks created
+* Example chunk outputs
+* Search results with similarity scores
 
 ---
 
-### Issue 2: Agent Ignores Context
+# 🛠 Troubleshooting
 
-**Symptoms:**
-- Context retrieved (scores good)
-- Agent still doesn't use information
+### ❗ Low-quality retrieval
 
-**Solution:**
+* High distances (>1.5)
+* Wrong chunks returned
 
-Strengthen the prompt in `agent.py`:
+Try:
+
+* Increase chunk size:
 
 ```python
-enhanced_instructions = f"""CRITICAL: You MUST use this information:
+chunk_size = 400
+```
 
-{context_text}
+* Increase number of retrieved chunks:
 
-Customer question: {instructions}
-
-Answer ONLY using the information above. Read it carefully."""
+```python
+search_faiss(query, k=7)
 ```
 
 ---
 
-### Issue 3: Slow Performance
+### ❗ Model retrieves results but AI ignores them
 
-**Check:**
+Strengthen function tool instructions to:
+
+```
+Base your answer ONLY on the information returned by `search_store_info`.
+```
+
+---
+
+### ❗ Search slow
+
+Check runtime:
+
 ```python
 import time
-
 start = time.time()
-results = search_faiss("test query")
-print(f"Search took: {(time.time()-start)*1000:.2f}ms")
+search_faiss("test")
+print(time.time() - start)
 ```
 
-**If slower:**
-- Model loading on every call (load once!)
-- Large chunk size (reduce to 250)
-- Too many chunks (>1000 needs IndexIVFFlat)
+Typical time: **< 10 ms**
 
 ---
+
+# 🧾 Summary
+
+| Component       | Technology                        |
+| --------------- | --------------------------------- |
+| Vector DB       | FAISS                             |
+| Embeddings      | SentenceTransformer               |
+| Store data      | store.txt                         |
+| Retrieval       | search_store_info() function tool |
+| LLM enforcement | System instructions               |
+
+This setup ensures:
+
+* Accurate, real store answers
+* No hallucination
+* Easy updates
+* Local and fast retrieval
+
+---
+
