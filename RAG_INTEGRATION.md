@@ -216,10 +216,10 @@ Gemini transcribes text
 LLM checks the task
     ↓
 Is the question about the store?
-    ↓       ↓
-  Yes        No
-    ↓        ↓
-Call search_store_info()     Answer directly
+    ↓                         ↓
+  Yes                         No
+    ↓                         ↓
+Call search_store_info()    Answer directly
     ↓
 FAISS returns relevant chunks
     ↓
